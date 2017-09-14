@@ -149,42 +149,49 @@ def basicUnitTest():
 
 	asyncio.set_event_loop(TestLoopEx())
 
-	client = StudentClient()
-	server = QuizServer()
+	clientProtocol = StudentClient()
+	serverProtocol = QuizServer()
 
-	transportToServer = MockTransportToProtocol(server)
-	transportToClient = MockTransportToProtocol(client)
-
-	server.connection_made(transportToClient)
-	client.connection_made(transportToServer)
+	transportToServer = MockTransportToProtocol(myProtocol=clientProtocol)
+	transportToClient = MockTransportToProtocol(myProtocol=serverProtocol)
+	transportToServer.setRemoteTransport(transportToClient)
+	transportToClient.setRemoteTransport(transportToServer)
+	clientProtocol.connection_made(transportToServer)
+	serverProtocol.connection_made(transportToClient)
 
 	# client sends first packet
-	client.request(stdInCallback)
+	clientProtocol.request(stdInCallback)
 	
 	transportToClient.close()
 	transportToServer.close()
 	
 	print()
 	
-	transportToServer2 = MockTransportToProtocol(server)
-	transportToClient2 = MockTransportToProtocol(client)
+	transportToServer2 = MockTransportToProtocol(myProtocol=clientProtocol)
+	transportToClient2 = MockTransportToProtocol(myProtocol=serverProtocol)
 	
-	server.connection_made(transportToClient2)
-	client.connection_made(transportToServer2)
+	transportToServer2.setRemoteTransport(transportToClient)
+	transportToClient2.setRemoteTransport(transportToServer)
+	
+	clientProtocol.connection_made(transportToServer2)
+	serverProtocol.connection_made(transportToClient2)
 	
 	# server receives wrong packet
-	server.data_received(packet3Bytes)
+	serverProtocol.data_received(packet3Bytes)
 	
 	print()
 	
-	transportToServer3 = MockTransportToProtocol(server)
-	transportToClient3 = MockTransportToProtocol(client)
+	transportToServer3 = MockTransportToProtocol(myProtocol=clientProtocol)
+	transportToClient3 = MockTransportToProtocol(myProtocol=serverProtocol)
 	
-	server.connection_made(transportToClient3)
-	client.connection_made(transportToServer3)
+	transportToServer3.setRemoteTransport(transportToClient)
+	transportToClient3.setRemoteTransport(transportToServer)
+	
+	clientProtocol.connection_made(transportToServer3)
+	serverProtocol.connection_made(transportToClient3)
 	
 	# client receives wrong packet
-	client.data_received(packet4Bytes)
+	clientProtocol.data_received(packet4Bytes)
 	
 
 # main method
